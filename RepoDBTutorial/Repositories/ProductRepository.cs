@@ -1,4 +1,5 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Options;
 using RepoDb;
 using RepoDb.Interfaces;
@@ -31,6 +32,11 @@ namespace RepoDBTutorial.Repositories
             return Delete(productId);
         }
 
+        public IEnumerable<ProductModel> Find(string query)
+        {
+            return Query(product => product.Name.Contains(query));
+        }
+
         public IEnumerable<ProductModel> GetAll()
         {
             return QueryAll();
@@ -46,9 +52,26 @@ namespace RepoDBTutorial.Repositories
             return Query(p => p.Name == name).FirstOrDefault();
         }
 
+        public long GetProductsCount()
+        {
+            return base.CountAll();
+        }
+
+        public int InsertMultiple(List<ProductModel> products)
+        {
+            return base.InsertAll(products);
+        }
+
         public int Update(ProductModel product)
         {
-            return Update(product);
+            var isProductAvailable = base.Exists(product.ID);
+
+            if (isProductAvailable)
+            {
+                var result = base.Update(product);
+                return result;
+            }
+            return  0;
         }
     }
 }

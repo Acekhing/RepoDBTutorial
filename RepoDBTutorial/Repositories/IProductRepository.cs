@@ -13,6 +13,8 @@ namespace RepoDBTutorial.Repositories
         ProductModel GetById(long id);
         ProductModel GetByName(string name);
         IEnumerable<ProductModel> GetAll();
-
+        int InsertMultiple(List<ProductModel> products);
+        IEnumerable<ProductModel> Find(string query);
+        long GetProductsCount();
     }
 }

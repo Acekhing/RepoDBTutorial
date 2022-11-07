@@ -5,10 +5,10 @@ using RepoDBTutorial.Repositories;
 namespace RepoDBTutorial.Controllers
 {
 
-    [Route("api/[controller]")]
+    [Route("api/products")]
     [ApiController]
 
-    public class ProductController: ControllerBase
+    public class ProductController : ControllerBase
     {
 
         private readonly IProductRepository _productRepository;
@@ -21,37 +21,32 @@ namespace RepoDBTutorial.Controllers
         [HttpPost]
         public IActionResult CreateProduct([FromBody] ProductModel productModel)
         {
-            if(productModel == null)
+            if (productModel == null)
             {
                 return new BadRequestResult();
             }
 
             _productRepository.Create(productModel);
-            return new OkObjectResult(new {productId = productModel.ID});
+            return new OkObjectResult(new { productId = productModel.ID });
         }
 
-        [HttpGet("/api/[controller]/id")]
-        public IActionResult GetProductById([FromQuery] long id)
+        [HttpPost("all")]
+        public IActionResult AddMultipleProducts([FromBody] List<ProductModel> products)
         {
-            if(id == 0)
+            var result = _productRepository.InsertMultiple(products);
+            return Ok(result);
+        }
+
+        [HttpGet("{id}")]
+        public IActionResult GetProductById([FromRoute] long id)
+        {
+            if (id == 0)
             {
                 return new NotFoundResult();
             }
 
             var product = _productRepository.GetById(id);
             return product == null ? new NotFoundResult() : new OkObjectResult(product);
-        }
-
-        [HttpGet("/api/[controller]/name")]
-        public IActionResult GetProductByName([FromQuery] string? name)
-        {
-            if (name == null)
-            {
-                return NotFound();
-            }
-
-            var products = _productRepository.GetByName(name);
-            return products == null ? NotFound() : new OkObjectResult(products);
         }
 
         [HttpGet]
@@ -62,7 +57,7 @@ namespace RepoDBTutorial.Controllers
         }
 
         [HttpDelete]
-        [Route("id")]
+        [Route("{id}")]
         public IActionResult DeleteProductById([FromRoute] long id)
         {
             if (id == 0)
@@ -71,7 +66,28 @@ namespace RepoDBTutorial.Controllers
             }
 
             var productId = _productRepository.DeleteById(id);
-            return new OkObjectResult(new {productId = productId });
+            return new OkObjectResult(new { productId = productId });
+        }
+
+        [HttpGet("search")]
+        public IActionResult SearchProducts([FromQuery] string query)
+        {
+            var results = _productRepository.Find(query);
+            return Ok(results);
+        }
+
+        [HttpGet("count")]
+        public IActionResult GetProductCount()
+        {
+            var productsCount = _productRepository.GetProductsCount();
+            return new OkObjectResult(new { totalProducts = productsCount });
+        }
+
+        [HttpPut]
+        public IActionResult UpdateProduct([FromBody] ProductModel product)
+        {
+            var result = _productRepository.Update(product);
+            return result == 0 ? new NotFoundResult() : new OkObjectResult(result);
         }
 
     }
